@@ -22,7 +22,7 @@
     font-size: 13px;
     color: #f2f2f2;
         box-sizing: border-box;
-    max-width: 320px;
+        width: 280px;
 }
   #sw-cover {
     width: 28px;
@@ -60,7 +60,7 @@
   <body>
     <div id="spotify-widget">
       <div id="sw-cover">🎵</div>
-      <div style="min-width:0;overflow:hidden;white-space:nowrap;">
+          <div style="flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">
         <span style="color:#9a9a9a;">Sonando: </span><span id="sw-text">Cargando...</span>
       </div>
       <div id="sw-eq"><span></span><span></span><span></span></div>
