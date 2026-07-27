@@ -1,0 +1,50 @@
+<!--
+  Pega esto en un bloque "Embed" de Framer.
+  IMPORTANTE: sustituye TU-PROYECTO por el nombre real de tu proyecto en Vercel
+  (aparecerá en la URL que te dé Vercel, tipo https://spotify-now-playing-abcd.vercel.app)
+
+  Este es el mismo diseño "compact" de la primera maqueta que te gustó:
+  icono pequeño (28px), borde fino, barras finas, texto a 13px.
+-->
+<div id="spotify-widget" style="display:inline-flex;align-items:center;gap:10px;background:#121212;border:1px solid #2b2b2f;border-radius:999px;padding:8px 16px 8px 8px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;color:#f2f2f2;max-width:340px;">
+  <div id="sw-cover" style="width:28px;height:28px;border-radius:6px;flex-shrink:0;background:conic-gradient(from 220deg,#1DB954,#0c5d29,#1a1a1a,#1DB954);background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;font-size:12px;">🎵</div>
+  <div style="min-width:0;overflow:hidden;">
+    <span style="color:#9a9a9a;">Sonando: </span><span id="sw-text" style="font-weight:600;white-space:nowrap;">Cargando...</span>
+  </div>
+  <div id="sw-eq" style="display:flex;align-items:flex-end;gap:3px;height:12px;flex-shrink:0;">
+    <span style="width:2px;background:#1DB954;border-radius:2px;display:block;animation:sw-bounce 1.1s ease-in-out infinite;"></span>
+    <span style="width:2px;background:#1DB954;border-radius:2px;display:block;animation:sw-bounce 1.1s ease-in-out infinite .2s;"></span>
+    <span style="width:2px;background:#1DB954;border-radius:2px;display:block;animation:sw-bounce 1.1s ease-in-out infinite .4s;"></span>
+  </div>
+</div>
+<style>@keyframes sw-bounce{0%,100%{height:3px;}50%{height:12px;}}</style>
+<script>
+var SPOTIFY_WIDGET_ENDPOINT = "https://TU-PROYECTO.vercel.app/api/now-playing";
+
+async function updateSpotifyWidget() {
+  try {
+    const res = await fetch(SPOTIFY_WIDGET_ENDPOINT);
+    const data = await res.json();
+    const text = document.getElementById('sw-text');
+    const eq = document.getElementById('sw-eq');
+    const cover = document.getElementById('sw-cover');
+    if (data.isPlaying) {
+      text.textContent = data.title + ' · ' + data.artist;
+      eq.style.display = 'flex';
+      if (data.albumImage) {
+        cover.style.backgroundImage = 'url(' + data.albumImage + ')';
+        cover.textContent = '';
+      }
+    } else {
+      text.textContent = 'nada por ahora';
+      eq.style.display = 'none';
+      cover.style.backgroundImage = 'none';
+      cover.textContent = '🎵';
+    }
+  } catch (e) {
+    document.getElementById('sw-text').textContent = 'sin conexión';
+  }
+}
+updateSpotifyWidget();
+setInterval(updateSpotifyWidget, 10000);
+</script>
