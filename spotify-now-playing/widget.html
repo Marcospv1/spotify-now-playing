@@ -17,9 +17,8 @@
     background: #121212;
     border: 1px solid #2b2b2f;
     border-radius: 999px;
-    padding: 8px 16px 8px 8px;
+    padding: 9px 16px 9px 8px;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    font-size: 13px;
     color: #f2f2f2;
     box-sizing: border-box;
     width: 280px;
@@ -55,10 +54,24 @@
   #sw-eq span:nth-child(3) { animation-delay: .4s; }
   @keyframes sw-bounce { 0%, 100% { height: 3px; } 50% { height: 12px; } }
 
-  /* Zona de texto con scroll infinito cuando no cabe */
-  #sw-text-wrap {
+  /* Columna de texto: línea 1 fija + línea 2 con scroll infinito */
+  #sw-textcol {
     flex: 1;
     min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+  }
+  #sw-line1 {
+    font-size: 11px;
+    line-height: 1.2;
+    color: #9a9a9a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  #sw-text-wrap {
     overflow: hidden;
     position: relative;
     -webkit-mask-image: linear-gradient(to right, black 92%, transparent 100%);
@@ -67,6 +80,9 @@
   #sw-track {
     display: inline-flex;
     white-space: nowrap;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.25;
     will-change: transform;
   }
   #sw-track.sw-scrolling {
@@ -75,8 +91,6 @@
     animation-iteration-count: infinite;
   }
   .sw-copy { padding-right: 36px; }
-  .sw-label { color: #9a9a9a; }
-  .sw-title { font-weight: 600; }
   @keyframes sw-marquee {
     from { transform: translateX(0); }
     to   { transform: translateX(-50%); }
@@ -86,33 +100,29 @@
 <body>
   <div id="spotify-widget">
     <div id="sw-cover">🎵</div>
-    <div id="sw-text-wrap">
-      <span id="sw-track"></span>
+    <div id="sw-textcol">
+      <div id="sw-line1">Marcos no está escuchando música</div>
+      <div id="sw-text-wrap">
+        <span id="sw-track"></span>
+      </div>
     </div>
     <div id="sw-eq"><span></span><span></span><span></span></div>
   </div>
 
   <script>
-    var lastRenderedText = null;
+    var lastRenderedTrack = null;
     var MARQUEE_SPEED_PX_PER_SEC = 35; // velocidad del scroll
 
     function buildCopy(fullText) {
       var wrapper = document.createElement('span');
       wrapper.className = 'sw-copy';
-      var label = document.createElement('span');
-      label.className = 'sw-label';
-      label.textContent = 'Sonando: ';
-      var title = document.createElement('span');
-      title.className = 'sw-title';
-      title.textContent = fullText;
-      wrapper.appendChild(label);
-      wrapper.appendChild(title);
+      wrapper.textContent = fullText;
       return wrapper;
     }
 
-    function renderText(fullText) {
-      if (fullText === lastRenderedText) return; // evita reiniciar la animación sin motivo
-      lastRenderedText = fullText;
+    function renderTrack(fullText) {
+      if (fullText === lastRenderedTrack) return; // evita reiniciar la animación sin motivo
+      lastRenderedTrack = fullText;
 
       var wrap = document.getElementById('sw-text-wrap');
       var track = document.getElementById('sw-track');
@@ -138,27 +148,37 @@
     }
 
     async function updateSpotifyWidget() {
+      var line1 = document.getElementById('sw-line1');
+      var textWrap = document.getElementById('sw-text-wrap');
+      var eq = document.getElementById('sw-eq');
+      var cover = document.getElementById('sw-cover');
+
       try {
         // Ruta relativa: al vivir en el mismo dominio que /api/now-playing, no hace falta CORS.
         const res = await fetch('/api/now-playing');
         const data = await res.json();
-        const eq = document.getElementById('sw-eq');
-        const cover = document.getElementById('sw-cover');
+
         if (data.isPlaying) {
-          renderText(data.title + ' · ' + data.artist);
+          line1.textContent = 'Marcos está escuchando';
+          textWrap.style.display = 'block';
+          renderTrack(data.title + ' · ' + data.artist);
           eq.style.display = 'flex';
           if (data.albumImage) {
             cover.style.backgroundImage = 'url(' + data.albumImage + ')';
             cover.textContent = '';
           }
         } else {
-          renderText('nada por ahora');
+          line1.textContent = 'Marcos no está escuchando música';
+          textWrap.style.display = 'none';
+          lastRenderedTrack = null; // para que la próxima canción reinicie el scroll bien
           eq.style.display = 'none';
           cover.style.backgroundImage = 'none';
           cover.textContent = '🎵';
         }
       } catch (e) {
-        renderText('sin conexión');
+        line1.textContent = 'Marcos no está escuchando música';
+        textWrap.style.display = 'none';
+        eq.style.display = 'none';
       }
     }
     updateSpotifyWidget();
