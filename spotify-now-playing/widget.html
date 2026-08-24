@@ -15,19 +15,20 @@
     align-items: center;
     justify-content: flex-start;
     gap: 8px;
+    max-width: 280px;
     background: transparent;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     box-sizing: border-box;
   }
 
-  /* Nota musical: sustituye al "punto" de estado, con pulso suave mientras suena */
+  /* Nota musical (corchea): sustituye al "punto" de estado, con pulso suave mientras suena */
   #sw-note {
     font-size: 15px;
     line-height: 1;
     color: #1DB954;
     flex-shrink: 0;
     display: inline-block;
-    opacity: 0.4;
+    opacity: 0.55;
     transform: scale(1);
     transition: opacity .3s ease;
   }
@@ -40,43 +41,37 @@
     50%      { opacity: 1;    transform: scale(1.2); }
   }
 
-  /* Columna de texto: línea 1 fija + línea 2 con scroll infinito, todo a la izquierda */
-  #sw-textcol {
-    max-width: 210px;
-    min-width: 0;
+  /* Todo en una sola línea: prefijo fijo + texto con scroll infinito, pensado para fondos claros */
+  #sw-line {
     display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: flex-start;
-    text-align: left;
-    gap: 2px;
+    align-items: baseline;
+    min-width: 0;
+    flex: 1;
+    gap: 5px;
   }
-  #sw-line1 {
-    font-size: 12px;
+  #sw-prefix {
+    font-size: 13px;
     line-height: 1.3;
     font-weight: 400;
-    color: #9a9a9a;
+    color: #444444;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 100%;
-    text-align: left;
+    flex-shrink: 0;
   }
   #sw-text-wrap {
     overflow: hidden;
     position: relative;
-    max-width: 100%;
-    text-align: left;
-    -webkit-mask-image: linear-gradient(to right, black 92%, transparent 100%);
-    mask-image: linear-gradient(to right, black 92%, transparent 100%);
+    flex: 1;
+    min-width: 30px;
+    -webkit-mask-image: linear-gradient(to right, black 88%, transparent 100%);
+    mask-image: linear-gradient(to right, black 88%, transparent 100%);
   }
   #sw-track {
     display: inline-flex;
     white-space: nowrap;
     font-size: 13px;
-    font-weight: 400;
+    font-weight: 500;
     line-height: 1.3;
-    color: #f2f2f2;
+    color: #1a1a1a;
     will-change: transform;
   }
   #sw-track.sw-scrolling {
@@ -94,9 +89,9 @@
 <body>
   <div id="spotify-widget">
     <span id="sw-note">&#9834;</span>
-    <div id="sw-textcol">
-      <div id="sw-line1">Marcos no está escuchando música</div>
-      <div id="sw-text-wrap">
+    <div id="sw-line">
+      <span id="sw-prefix">Marcos no está escuchando música</span>
+      <div id="sw-text-wrap" style="display:none;">
         <span id="sw-track"></span>
       </div>
     </div>
@@ -141,7 +136,7 @@
     }
 
     async function updateSpotifyWidget() {
-      var line1 = document.getElementById('sw-line1');
+      var prefix = document.getElementById('sw-prefix');
       var textWrap = document.getElementById('sw-text-wrap');
       var note = document.getElementById('sw-note');
 
@@ -151,18 +146,18 @@
         const data = await res.json();
 
         if (data.isPlaying) {
-          line1.textContent = 'Marcos está escuchando';
+          prefix.textContent = 'Marcos está escuchando';
           textWrap.style.display = 'block';
           note.classList.add('sw-pulsing');
           renderTrack(data.title + ' · ' + data.artist);
         } else {
-          line1.textContent = 'Marcos no está escuchando música';
+          prefix.textContent = 'Marcos no está escuchando música';
           textWrap.style.display = 'none';
           note.classList.remove('sw-pulsing');
           lastRenderedTrack = null; // para que la próxima canción reinicie el scroll bien
         }
       } catch (e) {
-        line1.textContent = 'Marcos no está escuchando música';
+        prefix.textContent = 'Marcos no está escuchando música';
         textWrap.style.display = 'none';
         note.classList.remove('sw-pulsing');
       }
